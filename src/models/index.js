@@ -1,4 +1,4 @@
-const Sequelize = require('sequelize');
+const { Sequelize } = require('sequelize');
 const { sequelize } = require('../config/database');
 
 const Booker = require('./booker');
@@ -10,16 +10,19 @@ const Seat = require('./seat');
 Booker.hasMany(Booking, { foreignKey: 'bookerId' });
 Booking.belongsTo(Booker, { foreignKey: 'bookerId' });
 
-Auditorium.hasMany(Booking, { foreignKey: 'auditoriumId', as: 'bookings' });
-Booking.belongsTo(Auditorium, { foreignKey: 'auditoriumId', as: 'auditoriumDetails' });
+Auditorium.hasMany(Booking, { foreignKey: 'auditoriumId' });
+Booking.belongsTo(Auditorium, { foreignKey: 'auditoriumId' });
 
 Auditorium.hasMany(Seat, { foreignKey: 'auditoriumId', as: 'auditoriumSeats' });
-Seat.belongsTo(Auditorium, { foreignKey: 'auditoriumId', as: 'auditoriumDetails' });
+Seat.belongsTo(Auditorium, { foreignKey: 'auditoriumId' });
+
+Seat.hasMany(Booking, { foreignKey: 'seatId' });
+Booking.belongsTo(Seat, { foreignKey: 'seatId' });
 
 module.exports = {
   Booker,
   Booking,
   Auditorium,
   Seat,
-  sequelize
+  sequelize,
 };

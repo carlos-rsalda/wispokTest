@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, updateBooker, deleteBooker } = require('../controllers/authController');
+const { getAllBookers, register, login, updateBooker, deleteBooker } = require('../controllers/authController');
 
 /**
  * @swagger
@@ -154,5 +154,28 @@ router.put('/:id', updateBooker);
  *         description: Some server error
  */
 router.delete('/:id', deleteBooker);
+
+
+/**
+ * @swagger
+ * /api/auth:
+ *   get:
+ *     summary: Gets all bookers
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: The list of bookers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Booker'
+ *       500:
+ *         description: Some server error
+ */
+router.get('/', getAllBookers);
 
 module.exports = router;

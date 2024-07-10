@@ -1,13 +1,13 @@
-const swaggerJSDoc = require('swagger-jsdoc');
+const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const { version } = require('../../package.json');
 
-// Metadata de la API
 const options = {
-  definition: {
+  swaggerDefinition: {
     openapi: '3.0.0',
     info: {
-      title: 'Cinema Booking System API',
-      version: '1.0.0',
+      title: 'Cinema Booking API',
+      version,
       description: 'API for managing cinema bookings',
     },
     servers: [
@@ -30,13 +30,11 @@ const options = {
       },
     ],
   },
-  apis: ['./src/routes/*.js', './src/models/*.js'], // Archivos donde se encuentran los comentarios de swagger
+  apis: ['./src/routes/*.js'],
 };
 
-const swaggerSpec = swaggerJSDoc(options);
+const specs = swaggerJsDoc(options);
 
-const swaggerDocs = (app) => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+module.exports = (app) => {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 };
-
-module.exports = swaggerDocs;

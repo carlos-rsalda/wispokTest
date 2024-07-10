@@ -3,7 +3,7 @@ const { Auditorium, Seat } = require('./models');
 
 const initData = async () => {
   try {
-    await sequelize.sync(); // Sincronizar los modelos sin eliminar tablas existentes
+    await sequelize.sync(); 
     console.log('Database synchronized');
 
     const count = await Auditorium.count();
@@ -15,12 +15,16 @@ const initData = async () => {
       ];
 
       for (const aud of auditoriums) {
-        const createdAuditorium = await Auditorium.create(aud);
+        const auditorium = await Auditorium.create({
+          name: aud.name,
+          times: aud.times
+        });
 
         for (let i = 1; i <= aud.seats; i++) {
           await Seat.create({
             number: i,
-            auditoriumId: createdAuditorium.id
+            auditoriumId: auditorium.id,
+            isOccupied: false,
           });
         }
       }

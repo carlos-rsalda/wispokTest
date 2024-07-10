@@ -9,21 +9,19 @@ exports.getAvailability = async (req, res) => {
       include: [{
         model: Seat,
         as: 'auditoriumSeats',
-        attributes: ['number'],
+        attributes: ['number', 'isOccupied'],
         include: [{
           model: Booking,
-          as: 'bookings',
-          attributes: ['time']
+          attributes: ['time'],
+          required: false 
         }]
       }]
     });
 
     const result = auditoriums.map(auditorium => {
       const seats = auditorium.auditoriumSeats.map(seat => {
-        const isOccupied = seat.bookings.some(booking => booking.time === req.query.time);
         return {
           number: seat.number,
-          isOccupied
         };
       });
 
@@ -47,26 +45,34 @@ exports.getAvailability = async (req, res) => {
 exports.createBooking = async (req, res) => {
   const { auditoriumId, time, seat, email, bookerId } = req.body;
   try {
-    // Verificar si la sala, horario y asiento están disponibles
-    const existingBooking = await Booking.findOne({ where: { auditoriumId, time, seat } });
-    if (existingBooking) {
-      return res.status(400).json({ msg: 'Seat already booked at this time' });
-    }
-
-    // Verificar si el asiento existe en la sala
+    // Verificar si el asiento existe y está ocupado
     const seatRecord = await Seat.findOne({ where: { auditoriumId, number: seat } });
     if (!seatRecord) {
       return res.status(400).json({ msg: 'Invalid seat number for the selected auditorium' });
+    }
+
+    if (seatRecord.isOccupied) {
+      return res.status(400).json({ msg: 'Seat is already occupied' });
+    }
+
+    // Verificar si la sala, horario y asiento están disponibles
+    const existingBooking = await Booking.findOne({ where: { auditoriumId, time, seatId: seatRecord.id } });
+    if (existingBooking) {
+      return res.status(400).json({ msg: 'Seat already booked at this time' });
     }
 
     // Crear la nueva reserva
     const booking = await Booking.create({
       auditoriumId,
       time,
-      seat,
+      seatId: seatRecord.id,
       email,
       bookerId
     });
+
+    // Actualizar el estado del asiento
+    seatRecord.isOccupied = true;
+    await seatRecord.save();
 
     res.json(booking);
   } catch (err) {
@@ -103,10 +109,8 @@ exports.getBookingConfirmation = async (req, res) => {
 
 exports.getAllBookings = async (req, res) => {
   try {
-    // Primero, obtén todos los bookings sin incluir los auditoriums
     const bookings = await Booking.findAll();
 
-    // Luego, para cada booking, obtén el auditorium asociado
     const detailedBookings = await Promise.all(bookings.map(async (booking) => {
       const auditorium = await Auditorium.findByPk(booking.auditoriumId);
       return {
@@ -125,7 +129,6 @@ exports.updateBooking = async (req, res) => {
   const { id } = req.params;
   const { time, seat, email, auditoriumId, bookerId } = req.body;
 
-
   try {
     const booking = await Booking.findByPk(id);
 
@@ -133,8 +136,28 @@ exports.updateBooking = async (req, res) => {
       return res.status(404).json({ msg: 'Booking not found' });
     }
 
+    // Verificar si el asiento está ocupado
+    const seatRecord = await Seat.findOne({ where: { auditoriumId, number: seat } });
+    if (!seatRecord) {
+      return res.status(400).json({ msg: 'Invalid seat number for the selected auditorium' });
+    }
+
+    if (seatRecord.isOccupied && seatRecord.id !== booking.seatId) {
+      return res.status(400).json({ msg: 'Seat is already occupied' });
+    }
+
+    // Actualizar el estado del asiento antiguo si ha cambiado
+    if (booking.seatId !== seatRecord.id) {
+      const oldSeatRecord = await Seat.findByPk(booking.seatId);
+      oldSeatRecord.isOccupied = false;
+      await oldSeatRecord.save();
+
+      seatRecord.isOccupied = true;
+      await seatRecord.save();
+    }
+
     booking.time = time;
-    booking.seat = seat;
+    booking.seatId = seatRecord.id;
     booking.email = email;
     booking.auditoriumId = auditoriumId;
     booking.bookerId = bookerId;
@@ -150,18 +173,40 @@ exports.updateBooking = async (req, res) => {
 
 exports.deleteBooking = async (req, res) => {
   const { id } = req.params;
-
   try {
     const booking = await Booking.findByPk(id);
-
     if (!booking) {
       return res.status(404).json({ msg: 'Booking not found' });
     }
 
+    // Marcar el asiento como desocupado
+    await Seat.update({ isOccupied: false }, { where: { auditoriumId: booking.auditoriumId, number: booking.seat } });
+
+    // Eliminar la reserva
     await booking.destroy();
 
-    res.json({ msg: 'Booking deleted' });
+    res.json({ msg: 'Booking removed' });
   } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.getSeatsByAuditorium = async (req, res) => {
+  const { auditoriumId } = req.params;
+  try {
+    const seats = await Seat.findAll({
+      where: { auditoriumId },
+      attributes: ['id', 'number', 'isOccupied'],
+    });
+
+    if (!seats) {
+      return res.status(404).json({ msg: 'No seats found for the specified auditorium' });
+    }
+
+    res.json(seats);
+  } catch (err) {
+    console.error(err.message);
     res.status(500).send('Server error');
   }
 };

@@ -117,3 +117,20 @@ exports.deleteBooker = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+exports.getAllBookers = async (req, res) => {
+  try {
+    const bookers = await Booker.findAll({
+      attributes: ['id', 'email'],
+    });
+
+    if (!bookers) {
+      return res.status(404).json({ msg: 'No bookers found' });
+    }
+
+    res.json(bookers);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};

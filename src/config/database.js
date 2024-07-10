@@ -19,11 +19,14 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('Connection to PostgreSQL has been established successfully.');
 
-    // Sincronizar los modelos en el orden correcto
-    await require('../models/auditorium').sync({ alter: true });
-    await require('../models/booker').sync({ alter: true });
-    await require('../models/seat').sync({ alter: true });
-    await require('../models/booking').sync({ alter: true });
+    // // Sincronizar los modelos en el orden correcto
+    // await require('../models/auditorium').sync({ alter: true });
+    // await require('../models/booker').sync({ alter: true });
+    // await require('../models/seat').sync({ alter: true });
+    // await require('../models/booking').sync({ alter: true });
+
+    await sequelize.sync({ force: true });
+
 
     console.log('Database synchronized');
   } catch (error) {

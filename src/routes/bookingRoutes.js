@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAvailability, createBooking, getBookingConfirmation, getAllBookings, updateBooking, deleteBooking } = require('../controllers/bookingController');
+const { getSeatsByAuditorium, getAvailability, createBooking, getBookingConfirmation, getAllBookings, updateBooking, deleteBooking } = require('../controllers/bookingController');
 const auth = require('../middlewares/authMiddleware');
 
 /**
@@ -40,6 +40,24 @@ const auth = require('../middlewares/authMiddleware');
  *         seat: 15
  *         email: "example@example.com"
  *         bookerId: 1
+ *     Booker:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The auto-generated id of the booker
+ *         email:
+ *           type: string
+ *           description: The email of the booker
+ *         password:
+ *           type: string
+ *           description: The hashed password of the booker
+ *       example:
+ *         email: example@example.com
+ *         password: password123
  *     Auditorium:
  *       type: object
  *       required:
@@ -63,7 +81,7 @@ const auth = require('../middlewares/authMiddleware');
  *                 description: The seat number
  *               isOccupied:
  *                 type: boolean
- *                 description: Indicates if the seat is occupied at the specified time
+ *                 description: Indicates if the seat is occupied
  *         times:
  *           type: array
  *           items:
@@ -89,11 +107,15 @@ const auth = require('../middlewares/authMiddleware');
  *           type: integer
  *           description: The seat number
  *         auditoriumId:
- *           type: string
+ *           type: integer
  *           description: The id of the auditorium the seat belongs to
+ *         isOccupied:
+ *           type: boolean
+ *           description: Indicates if the seat is occupied
  *       example:
  *         number: 15
  *         auditoriumId: 1
+ *         isOccupied: false
  */
 
 /**
@@ -102,6 +124,8 @@ const auth = require('../middlewares/authMiddleware');
  *   name: Bookings
  *   description: The bookings managing API
  */
+
+
 
 /**
  * @swagger
@@ -274,5 +298,38 @@ router.put('/:id', auth, updateBooking);
  *         description: Some server error
  */
 router.delete('/:id', auth, deleteBooking);
+
+/**
+ * @swagger
+ * /api/bookings/auditorium/{auditoriumId}/seats:
+ *   get:
+ *     summary: Gets seats of a specific auditorium
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: auditoriumId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the auditorium
+ *     responses:
+ *       200:
+ *         description: The list of seats for the specified auditorium
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Seat'
+ *       404:
+ *         description: No seats found for the specified auditorium
+ *       500:
+ *         description: Some server error
+ */
+router.get('/auditorium/:auditoriumId/seats', auth, getSeatsByAuditorium);
+
+
 
 module.exports = router;

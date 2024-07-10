@@ -6,30 +6,33 @@ const Booking = sequelize.define('Booking', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  seat: {
+  seatId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    references: {
+      model: 'Seats',
+      key: 'id',
+    },
   },
   auditoriumId: {
     type: DataTypes.INTEGER,
     references: {
       model: 'Auditoriums',
-      key: 'id'
-    }
+      key: 'id',
+    },
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   bookerId: {
     type: DataTypes.INTEGER,
     references: {
       model: 'Bookers',
-      key: 'id'
-    }
-  }
+      key: 'id',
+    },
+  },
 }, {
-  tableName: 'Bookings'
+  tableName: 'Bookings',
 });
 
 module.exports = Booking;
