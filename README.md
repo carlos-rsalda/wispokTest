@@ -28,6 +28,12 @@ Los siguientes son los requerimientos y casos de uso para este proyecto:
 - **Auditorium**: Representa cada sala en el cine. Tiene una cantidad de horarios disponibles y un número de asientos.
 - **Seat**: Representa un asiento numerado dentro de una sala. Está relacionado con un booker y pertenece a una sala.
 
+ERD:
+
+
+![image](https://github.com/carlos-rsalda/wispokTest/assets/153567205/4364738a-f97a-40be-9d73-4c52caceb5ef)
+
+
 ### Casos de Uso a Implementar:
 
 - Inicializar la aplicación con la información necesaria para su funcionamiento.
@@ -111,7 +117,11 @@ O puedes registrarte.
 1. Primero, realiza el registro de un usuario booker mediante el endpoint `/api/auth/register`.
 2. Luego, inicia sesión con el usuario registrado mediante el endpoint `/api/auth/login`.
 3. Copia el token JWT proporcionado en la respuesta del login.
+   ![image](https://github.com/carlos-rsalda/wispokTest/assets/153567205/4fff01ab-843d-419b-8b61-db66c9c40c7d)
+
 4. Haz clic en "Authorize" en la documentación de Swagger y pega el token JWT para autorizar todas las peticiones.
+   ![image](https://github.com/carlos-rsalda/wispokTest/assets/153567205/ab3e170c-c591-4f71-b206-a80c70493ea6)
+
 
 ## Despliegue
 
